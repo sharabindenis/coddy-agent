@@ -778,10 +778,11 @@
                   "ddg",
                   "google",
                   "searxng",
-                  "deepseek"
+                  "deepseek",
+                  "browser"
                 ]
               },
-              "description": "Search engines to ask, in merge order. Unset asks brave then bing. \"ddg\" and \"google\" are not asked by default: measured from a server, DuckDuckGo answers every query with an anti-bot interstitial and Google renders its results in the browser. \"searxng\" needs searxng_url.",
+              "description": "Search engines to ask, in merge order. Unset asks brave then bing. \"browser\" searches Google through a connected Coddy for Browser extension authenticated with browser.token. \"searxng\" needs searxng_url.",
               "default": [
                 "brave",
                 "bing"

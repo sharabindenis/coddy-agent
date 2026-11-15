@@ -134,6 +134,13 @@ func TestWebSearchAcceptsSearXNGWithAnAddress(t *testing.T) {
 	}
 }
 
+func TestWebSearchAcceptsBrowserEngine(t *testing.T) {
+	w := ToolWebSearch{Engines: []string{"browser"}}
+	if err := w.validate(); err != nil {
+		t.Fatalf("browser engine: %v", err)
+	}
+}
+
 // TestSearXNGURLAllowsPrivateAddresses is the decision the reviewers split on.
 // The address comes from the operator's own configuration, not from the model,
 // and a self-hosted SearXNG normally listens on localhost or a LAN address -

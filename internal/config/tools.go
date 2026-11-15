@@ -67,6 +67,7 @@ const (
 	WebSearchEngineGoogle   = "google"
 	WebSearchEngineSearXNG  = "searxng"
 	WebSearchEngineDeepSeek = "deepseek"
+	WebSearchEngineBrowser  = "browser"
 )
 
 // Defaults for tools.websearch. A blocked engine answers fast - a challenge
@@ -108,6 +109,7 @@ func KnownWebSearchEngines() []string {
 	return []string{
 		WebSearchEngineBrave, WebSearchEngineBing, WebSearchEngineDDG,
 		WebSearchEngineGoogle, WebSearchEngineSearXNG, WebSearchEngineDeepSeek,
+		WebSearchEngineBrowser,
 	}
 }
 

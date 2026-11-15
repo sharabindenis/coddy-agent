@@ -175,6 +175,11 @@ type Env struct {
 	// means the built-in defaults.
 	WebSearch *WebSearchSettings
 
+	// BrowserSearch is the optional browser-backed websearch engine. The
+	// browser module wires it for a configured session; nil makes the engine
+	// report itself unavailable like an API backend without credentials.
+	BrowserSearch BrowserSearchFunc
+
 	// AttachImage hands the model a picture together with the result of the
 	// running tool call: read calls it for a PNG, JPEG, GIF or WebP file. The
 	// agent keeps the picture on that call's result, where every surface finds
@@ -391,6 +396,19 @@ type WebSearchSettings struct {
 	// DeepSeekAPIKey is the DeepSeek Search API key.
 	DeepSeekAPIKey string
 }
+
+// BrowserSearchResult is one search result returned by a connected browser.
+// It lives in tooling so the untagged websearch tool and the optional browser
+// module can meet without making either package depend on the other.
+type BrowserSearchResult struct {
+	Title   string
+	URL     string
+	Snippet string
+}
+
+// BrowserSearchFunc searches through Coddy for Browser. It is installed only
+// by binaries built with the browser module and configured to use it.
+type BrowserSearchFunc func(ctx context.Context, query string, page, maxResults int, site string) ([]BrowserSearchResult, error)
 
 // PreviewServerSettings is the resolved tools.preview_server section as the
 // preview_server tool receives it. The field order is part of the contract:

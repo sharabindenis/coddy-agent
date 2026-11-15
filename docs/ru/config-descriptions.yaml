@@ -339,8 +339,8 @@ tools.websearch:
   en: "Which search engines the websearch tool asks, in what order their results merge, and what it may spend asking them. Each engine reports its own outcome next to the results, so a blocked backend is named rather than counted as \"the web has nothing\"."
   ru: "Какие поисковые системы опрашивает инструмент websearch, в каком порядке объединяются их результаты и сколько он может потратить на опрос. Каждая система сообщает свой исход рядом с результатами, поэтому заблокированный бэкенд называется по имени, а не считается ответом \"в сети ничего нет\"."
 tools.websearch.engines:
-  en: "Search engines to ask, in merge order. Unset asks brave then bing. \"ddg\" and \"google\" are not asked by default: measured from a server, DuckDuckGo answers every query with an anti-bot interstitial and Google renders its results in the browser. \"searxng\" needs searxng_url."
-  ru: "Поисковые системы для опроса в порядке объединения результатов. Если не задано, опрашиваются brave, затем bing. \"ddg\" и \"google\" по умолчанию не опрашиваются - при замерах с сервера DuckDuckGo отвечает на любой запрос промежуточной страницей защиты от ботов, а Google отрисовывает результаты в браузере. Для \"searxng\" нужен searxng_url."
+  en: "Search engines to ask, in merge order. Unset asks brave then bing. \"browser\" searches Google through a connected Coddy for Browser extension authenticated with browser.token. \"searxng\" needs searxng_url."
+  ru: "Поисковые системы для опроса в порядке объединения результатов. Если не задано, опрашиваются brave, затем bing. \"browser\" ищет в Google через подключённое расширение Coddy for Browser, аутентифицированное с помощью browser.token. Для \"searxng\" нужен searxng_url."
 tools.websearch.engine_timeout_seconds:
   en: "Seconds one engine may take before it is reported as unavailable. 0 uses the default."
   ru: "Сколько секунд может занять одна система, прежде чем она будет отмечена недоступной. 0 берёт значение по умолчанию."

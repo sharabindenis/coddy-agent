@@ -389,6 +389,7 @@ func (a *Agent) buildToolEnv(mode, sessionDir string) *tools.Env {
 		ImageRefusal:       a.toolImageRefusal,
 	}
 	httpRequestEnv(env, a.cfg)
+	tools.WireBrowserSearch(env, a.cfg)
 	a.wireWorkspaceTool(env)
 	a.applySubagentEnv(env, mode)
 	if a.subagent == nil && a.settings() != nil {
@@ -410,6 +411,7 @@ func (a *Agent) buildToolEnv(mode, sessionDir string) *tools.Env {
 			env.Background = a.backgroundPool(sessionDir)
 			env.BackgroundEnabled = next.Tools.Background.ResolvedEnabled()
 			env.WebSearch = webSearchSettings(next)
+			tools.WireBrowserSearch(env, next)
 			return warnings, nil
 		}
 	}

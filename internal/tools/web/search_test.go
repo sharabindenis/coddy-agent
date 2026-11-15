@@ -95,6 +95,29 @@ func TestSearchMergesEnginesInConfiguredOrder(t *testing.T) {
 	}
 }
 
+func TestSearchUsesConnectedBrowserEngineWithoutCachingProfiles(t *testing.T) {
+	searchCache.reset()
+	calls := 0
+	env := envWith(EngineBrowser)
+	env.WebSearch.CacheTTLSeconds = 300
+	env.BrowserSearch = func(_ context.Context, query string, page, max int, site string) ([]tooling.BrowserSearchResult, error) {
+		calls++
+		if query != "golang context" || page != 1 || max != 15 || site != "go.dev" {
+			t.Fatalf("browser search args = %q, %d, %d, %q", query, page, max, site)
+		}
+		return []tooling.BrowserSearchResult{{Title: "Context", URL: "https://go.dev/blog/context", Snippet: "Go context."}}, nil
+	}
+	for range 2 {
+		out := runSearch(t, env, `{"query":"golang context","site":"go.dev"}`)
+		if len(out.Results) != 1 || out.Results[0].Source != EngineBrowser {
+			t.Fatalf("browser results = %+v", out.Results)
+		}
+	}
+	if calls != 2 {
+		t.Fatalf("browser search calls = %d, want 2 (profile results must not use the shared cache)", calls)
+	}
+}
+
 func TestSearchDeduplicatesAcrossEngines(t *testing.T) {
 	stubEngines(t)
 	braveSearchFunc = func(context.Context, Query, Settings) ([]Result, error) {

@@ -467,6 +467,7 @@ func (a *Agent) Run(ctx context.Context, prompt []acp.ContentBlock) (string, err
 		ImageRefusal:       a.toolImageRefusal,
 	}
 	httpRequestEnv(toolEnv, a.cfg)
+	tools.WireBrowserSearch(toolEnv, a.cfg)
 	a.wireWorkspaceTool(toolEnv)
 	// The model's own model switch; a subagent runs on what its parent chose.
 	if a.subagent == nil && a.settings() != nil {
@@ -480,6 +481,8 @@ func (a *Agent) Run(ctx context.Context, prompt []acp.ContentBlock) (string, err
 			}
 			a.cfg = next
 			a.registry = tools.NewRegistryForEnvironment(next, a.environment)
+			toolEnv.WebSearch = webSearchSettings(next)
+			tools.WireBrowserSearch(toolEnv, next)
 			return warnings, nil
 		}
 	}

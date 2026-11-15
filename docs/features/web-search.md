@@ -55,6 +55,7 @@ A search row in the transcript reads as what it found, not as the JSON above. It
 | `deepseek` | yes (`deepseek_api_key` or `DEEPSEEK_API_KEY`) | [DeepSeek Search API](https://api-docs.deepseek.com/guides/search), disabled by default. Requires a key and supports only page 1. Missing credentials and requests for later pages report `blocked`. The query, including any `site:` restriction, must contain 1-128 Unicode characters. |
 | `ddg` | no | Not asked by default. From a server, both its endpoints answer every query with an HTTP 202 anti-bot page, which arrives as `blocked`; where DuckDuckGo still serves you, a query it has nothing for arrives as `empty`. |
 | `google` | no | Not asked by default. The page served to an unapproved client carries no organic results for any user agent; the results are rendered in the browser. |
+| `browser` | no API key; `browser.enable` and a connected extension | Opens Google in Coddy for Browser, reads the rendered result links and closes the temporary tab. The extension connects with the separate `browser.token` created in **Settings → Browser** and asks the person before first use of Google. Browser-profile results are never put in the process-wide search cache. |
 
 Results merge in the order the engines are listed, deduplicated by normalised URL - the same page reached through `www`, over `http`, with a campaign parameter (`utm_*`, `fbclid`, `gclid` and their kind) or a trailing slash is one row, and the URL handed to the model is the one its engine returned. Parameters that select content rather than name a referral are kept, so two revisions of one file are two results.
 
@@ -73,7 +74,7 @@ The judgement is batch-wide for the same reason. One row that misses every query
 ```yaml
 tools:
   websearch:
-    engines: [brave, bing]        # merge order; brave, bing, ddg, google, searxng, deepseek
+    engines: [brave, bing]        # also: ddg, google, searxng, deepseek, browser
     engine_timeout_seconds: 8     # per-engine budget
     total_timeout_seconds: 20     # budget for the whole search
     max_concurrent_engines: 4     # how many engines are asked at once
@@ -91,6 +92,21 @@ To use DeepSeek, add `deepseek` to `engines` and set `deepseek_api_key` or expor
 *Web search settings with DeepSeek selected and its API key field left empty to use `DEEPSEEK_API_KEY`.*
 
 An engine name the loader does not know is a configuration error rather than a silently skipped backend, and `searxng` without `searxng_url` is refused the same way - `coddy -t` reports both with the line they are on.
+
+### Search through the browser extension
+
+Choose `browser` when search must run in the user's real browser rather than from the server. Connect Coddy for Browser in **Settings → Browser** with the generated `browser.token`, then put the engine first (or use it alone):
+
+```yaml
+browser:
+  enable: true
+  token: ${CODDY_BROWSER_KEY}
+tools:
+  websearch:
+    engines: [browser, brave]
+```
+
+`websearch` uses the already authenticated WebSocket connection; the key is checked only when the extension connects and is never included in a tool call or model context. The extension's normal website approval still applies. One temporary Google tab is opened for the query and closed after its rendered links are read. With several connected browsers, select one once with the `browser` tool before searching.
 
 ### The Brave Search API key
 

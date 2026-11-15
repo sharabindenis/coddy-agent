@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/EvilFreelancer/coddy-agent/internal/tooling"
 )
 
 // Engine names accepted in tools.websearch.engines.
@@ -18,12 +20,13 @@ const (
 	EngineGoogle   = "google"
 	EngineSearXNG  = "searxng"
 	EngineDeepSeek = "deepseek"
+	EngineBrowser  = "browser"
 )
 
 // KnownEngines lists every backend the tool can be asked for, in the order the
 // listing is printed for an operator who misspelled one.
 func KnownEngines() []string {
-	return []string{EngineBrave, EngineBing, EngineDDG, EngineGoogle, EngineSearXNG, EngineDeepSeek}
+	return []string{EngineBrave, EngineBing, EngineDDG, EngineGoogle, EngineSearXNG, EngineDeepSeek, EngineBrowser}
 }
 
 // Result is one row of a search engine's answer.
@@ -112,7 +115,7 @@ type engineRun struct {
 // engines maps a configured name to its backend. The seams are package
 // variables so tests can swap a backend without a live call, the way the
 // original googleSearchFunc and bingSearchFunc did.
-func engineFor(name string) (searchFn, bool) {
+func engineFor(name string, env *tooling.Env) (searchFn, bool) {
 	switch name {
 	case EngineBrave:
 		return runBrave, true
@@ -126,6 +129,18 @@ func engineFor(name string) (searchFn, bool) {
 		return runSearXNG, true
 	case EngineDeepSeek:
 		return runDeepSeek, true
+	case EngineBrowser:
+		return func(ctx context.Context, q Query, _ Settings) ([]Result, error) {
+			if env == nil || env.BrowserSearch == nil {
+				return nil, errors.New("no connected browser search is configured")
+			}
+			rows, err := env.BrowserSearch(ctx, q.Text, q.Page, q.MaxResults, q.Site)
+			out := make([]Result, 0, len(rows))
+			for _, row := range rows {
+				out = append(out, Result{Title: row.Title, URL: row.URL, Snippet: row.Snippet})
+			}
+			return out, err
+		}, true
 	default:
 		return nil, false
 	}
@@ -136,6 +151,10 @@ func engineFor(name string) (searchFn, bool) {
 // configured order. The whole call is bounded by the settings' total budget, so
 // one hanging engine cannot hold the turn.
 func runEngines(ctx context.Context, names []string, q Query, s Settings) []engineRun {
+	return runEnginesWithEnv(ctx, names, q, s, nil)
+}
+
+func runEnginesWithEnv(ctx context.Context, names []string, q Query, s Settings, env *tooling.Env) []engineRun {
 	total := s.TotalTimeout()
 	ctx, cancel := context.WithTimeout(ctx, total)
 	defer cancel()
@@ -152,14 +171,22 @@ func runEngines(ctx context.Context, names []string, q Query, s Settings) []engi
 
 			started := time.Now()
 			run := engineRun{name: name}
-			fn, ok := engineFor(name)
+			fn, ok := engineFor(name, env)
 			if !ok {
 				run.report = Report{Engine: name, Status: OutcomeError, Reason: "unknown engine"}
 				runs[i] = run
 				return
 			}
 			key := cacheKey(name, q, s)
-			rows, err, cached := searchCache.get(key)
+			var rows []Result
+			var err error
+			var cached bool
+			// Browser results may depend on the browser profile and the
+			// connected person's locale. Never share them through the
+			// process-wide cache, and never retain a disconnected error.
+			if name != EngineBrowser {
+				rows, err, cached = searchCache.get(key)
+			}
 			if !cached {
 				engCtx, engCancel := context.WithTimeout(ctx, s.EngineTimeout())
 				rows, err = fn(engCtx, q, s)
@@ -170,7 +197,7 @@ func runEngines(ctx context.Context, names []string, q Query, s Settings) []engi
 				engCancel()
 				// A call the turn cut short says nothing about the engine, so
 				// it is not remembered as the engine's answer.
-				if !expired && ctx.Err() == nil {
+				if name != EngineBrowser && !expired && ctx.Err() == nil {
 					searchCache.put(key, rows, err, s.CacheTTL())
 				}
 			}

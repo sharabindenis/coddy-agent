@@ -643,7 +643,7 @@ func UISchemaMap() map[string]interface{} {
 						"engines": map[string]interface{}{
 							"type":        "array",
 							"title":       "Engines",
-							"description": "Search engines to ask, in merge order (default: brave, bing). \"ddg\" and \"google\" are not asked by default: from a server DuckDuckGo answers with an anti-bot page and Google renders its results in the browser. \"searxng\" needs the address below.",
+							"description": "Search engines to ask, in merge order (default: brave, bing). \"browser\" searches Google through a connected Coddy for Browser extension; the extension authenticates with browser.token from Settings and asks before using the site. \"searxng\" needs the address below.",
 							"items":       map[string]interface{}{"type": "string", "enum": KnownWebSearchEngines()},
 						},
 						"engine_timeout_seconds": intProp("Engine timeout (s)", "Seconds one engine may take before it is reported as unavailable (default 8)."),

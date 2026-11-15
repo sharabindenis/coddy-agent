@@ -17,3 +17,9 @@ func registerBrowserTools(r *Registry, cfg *config.Config) {
 	}
 	r.Register(browsertool.Tool(cfg))
 }
+
+// WireBrowserSearch lets websearch use an extension connection without ever
+// exposing the extension key to the tool environment.
+func WireBrowserSearch(env *Env, cfg *config.Config) {
+	browsertool.WireSearch(env, cfg)
+}

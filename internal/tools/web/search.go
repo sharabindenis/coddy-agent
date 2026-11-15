@@ -107,7 +107,7 @@ func executeSearchWeb(ctx context.Context, argsJSON string, env *tooling.Env) (s
 	names := settings.ResolvedEngines()
 	query := Query{Text: q, Page: page, MaxResults: maxRes, Site: strings.TrimSpace(args.Site)}
 
-	runs := runEngines(ctx, names, query, settings)
+	runs := runEnginesWithEnv(ctx, names, query, settings, env)
 
 	seen := make(map[string]bool)
 	rows := make([]searchRow, 0, maxRes)
@@ -159,7 +159,7 @@ func executeSearchWeb(ctx context.Context, argsJSON string, env *tooling.Env) (s
 	// is what stops the model concluding that the subject does not exist; the
 	// message names each engine so the operator can see what to fix.
 	if healthy == 0 && len(runs) > 0 {
-		return "", fmt.Errorf("every search engine was unavailable (%s). Search from this machine is degraded, not the subject: say so rather than concluding nothing exists. The operator can configure tools.websearch.searxng_url (a self-hosted SearXNG), a Brave Search API key (tools.websearch.brave_api_key, or the BRAVE_API_KEY environment variable) or a DeepSeek Search API key (tools.websearch.deepseek_api_key, or the DEEPSEEK_API_KEY environment variable) for a reliable backend",
+		return "", fmt.Errorf("every search engine was unavailable (%s). Search from this machine is degraded, not the subject: say so rather than concluding nothing exists. The operator can connect Coddy for Browser and select the browser engine, configure tools.websearch.searxng_url (a self-hosted SearXNG), a Brave Search API key (tools.websearch.brave_api_key, or the BRAVE_API_KEY environment variable) or a DeepSeek Search API key (tools.websearch.deepseek_api_key, or the DEEPSEEK_API_KEY environment variable) for a reliable backend",
 			describeFailures(runs))
 	}
 
